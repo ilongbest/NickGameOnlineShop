@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi tiết tài khoản - G-SHOP</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #ff416c;
+            --secondary: #4facfe;
+            --dark-blue: #0f0c29;
+            --purple: #302b63;
+            --success: #00ff88;
+            --warning: #fbc2eb;
+            --glass: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
+        body {
+            color: white;
+            background: radial-gradient(circle at center, var(--purple) 0%, var(--dark-blue) 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container { max-width: 1000px; margin: 0 auto; }
+
+        /* Nút quay lại */
+        .btn-back {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 10px 20px; background: var(--glass);
+            border: 1px solid var(--glass-border); border-radius: 10px;
+            color: white; text-decoration: none; font-weight: 600;
+            transition: 0.3s; margin-bottom: 30px;
+        }
+        .btn-back:hover { background: var(--primary); transform: translateX(-5px); }
+
+        .detail-card {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 24px; border: 1px solid var(--glass-border);
+            padding: 40px; backdrop-filter: blur(10px);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+        }
+
+        h1 { font-size: 2.2rem; margin-bottom: 10px; text-align: center; color: #fff; }
+        .description { opacity: 0.8; text-align: center; margin-bottom: 30px; font-style: italic; color: #ddd; }
+        .price { font-size: 2.8rem; color: var(--success); font-weight: 800; text-align: center; margin-bottom: 40px; text-shadow: 0 0 15px rgba(0, 255, 136, 0.3); }
+
+        /* Hiển thị ảnh dạng bảng */
+        .image-table {
+            width: 100%; border-collapse: separate; border-spacing: 15px;
+            margin-bottom: 40px; table-layout: fixed;
+        }
+        .image-table td {
+            background: var(--glass); border-radius: 15px;
+            overflow: hidden; border: 1px solid var(--glass-border);
+            vertical-align: middle; height: 250px;
+        }
+        .image-table img { width: 100%; height: 100%; object-fit: cover; transition: 0.5s; cursor: pointer; }
+        .image-table img:hover { transform: scale(1.08); }
+
+        /* Cụm nút bấm thanh toán */
+        .payment-actions {
+            display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;
+        }
+
+        .btn-pay {
+            display: flex; align-items: center; gap: 10px;
+            padding: 16px 35px; border-radius: 50px;
+            font-size: 1.1rem; font-weight: 700; border: none;
+            cursor: pointer; transition: 0.3s; color: white;
+        }
+
+        .btn-qr {
+            background: linear-gradient(to right, var(--primary), #ff4b2b);
+            box-shadow: 0 8px 20px rgba(255, 65, 108, 0.3);
+        }
+
+        .btn-balance {
+            background: linear-gradient(to right, #00b09b, #96c93d);
+            box-shadow: 0 8px 20px rgba(0, 176, 155, 0.3);
+        }
+
+        .btn-pay:hover:not(:disabled) { transform: translateY(-5px); filter: brightness(1.1); }
+        .btn-pay:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .policy-confirm {
+            max-width: 760px;
+            margin: 0 auto 24px;
+            padding: 16px 18px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid var(--glass-border);
+            border-radius: 14px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            line-height: 1.5;
+            color: rgba(255, 255, 255, 0.88);
+        }
+
+        .policy-confirm input {
+            margin-top: 4px;
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary);
+            flex: 0 0 auto;
+        }
+
+        /* Modal QR */
+        #paymentModal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); z-index: 2000; justify-content: center; align-items: center;
+            backdrop-filter: blur(8px);
+        }
+        .modal-content {
+            background: white; color: #333; padding: 35px; border-radius: 25px;
+            text-align: center; max-width: 420px; width: 90%;
+        }
+        #qrCode { width: 100%; max-width: 250px; margin: 20px 0; border: 4px solid #f0f0f0; border-radius: 15px; }
+        .confirm-btn {
+            background: #28a745; color: white; border: none; padding: 14px 25px;
+            border-radius: 12px; font-weight: 600; cursor: pointer; width: 100%; font-size: 1rem;
+        }
+
+        /* Box hiện thông báo sau khi mua */
+        #revealedBox {
+            display: none; margin-top: 30px; padding: 30px;
+            background: rgba(0, 255, 136, 0.05); border: 2px dashed var(--success);
+            border-radius: 20px; text-align: center; animation: fadeIn 0.5s ease;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .acc-info-box {
+            background: rgba(255, 255, 255, 0.1); padding: 20px;
+            border-radius: 15px; text-align: left; margin: 20px 0;
+            border: 1px solid var(--glass-border);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <a href="javascript:history.back()" class="btn-back">
+        <i class="fas fa-arrow-left"></i> Quay lại
+    </a>
+
+    <div class="detail-card">
+        <h1 id="accId">Tài khoản #...</h1>
+        <p class="description" id="accDesc">Đang tải mô tả tài khoản...</p>
+        <p class="description" id="accMeta">Đang tải thông tin nick...</p>
+
+        <table class="image-table">
+            <tbody id="imageBody">
+            </tbody>
+        </table>
+
+        <div class="price" id="accPrice">0đ</div>
+
+        <!-- Captcha -->
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 15px; margin-bottom: 30px;">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <img id="captchaImage" src="/api/captcha/image" alt="Captcha" style="border-radius: 10px; border: 1px solid var(--glass-border); cursor: pointer;" onclick="refreshCaptcha()">
+                <button type="button" onclick="refreshCaptcha()" style="background: var(--glass); border: 1px solid var(--glass-border); color: white; padding: 10px 15px; border-radius: 10px; cursor: pointer;">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+            </div>
+            <input type="text" id="captchaInput" placeholder="Nhập mã captcha" style="
+                width: 100%;
+                max-width: 300px;
+                padding: 12px 20px;
+                background: var(--glass);
+                border: 1px solid var(--glass-border);
+                border-radius: 10px;
+                color: white;
+                font-size: 1.1rem;
+                text-align: center;
+                letter-spacing: 2px;
+                outline: none;
+            ">
+        </div>
+
+        <label class="policy-confirm">
+            <input type="checkbox" id="policyAgree" onchange="togglePurchaseButtons()">
+            <span>Tôi đã đọc và đồng ý với Chính sách bảo hành và Điều khoản sử dụng của G-SHOP. Tôi hiểu rằng cần đổi thông tin bảo mật ngay sau khi nhận nick và nên quay video làm bằng chứng khi mua.</span>
+        </label>
+
+        <div class="payment-actions" id="actionArea">
+            <button class="btn-pay btn-qr" id="btnQr" onclick="showQR()" disabled>
+                <i class="fas fa-qrcode"></i> MUA BẰNG QR
+            </button>
+            <button class="btn-pay btn-balance" id="btnBalance" onclick="payWithBalance()" disabled>
+                <i class="fas fa-wallet"></i> MUA BẰNG SỐ DƯ
+            </button>
+        </div>
+
+        <div id="revealedBox">
+            <h2 style="color: var(--success);"><i class="fas fa-check-circle"></i> GIAO DỊCH THÀNH CÔNG</h2>
+            <div class="acc-info-box">
+                <p style="margin-bottom: 10px;">Tài khoản: <strong id="resUser" style="color: #fff; font-size: 1.3rem;"></strong></p>
+                <p>Mật khẩu: <strong id="resPass" style="color: #fff; font-size: 1.3rem;"></strong></p>
+            </div>
+            <p style="font-size: 0.85rem; opacity: 0.7;">Vui lòng kiểm tra kỹ và đổi mật khẩu để đảm bảo an toàn.</p>
+        </div>
+    </div>
+</div>
+
+<div id="paymentModal">
+    <div class="modal-content">
+        <h3 style="font-weight: 700;">QUÉT MÃ THANH TOÁN</h3>
+        <p style="font-size: 0.85rem; color: #666; margin-top: 5px;">Hệ thống duyệt tự động sau khi nhận tiền</p>
+        <img id="qrCode" src="" alt="QR">
+        <div style="background: #f8f9fa; padding: 15px; border-radius: 12px; margin-bottom: 20px;">
+            <p style="font-size: 0.8rem; color: #888;">Nội dung chuyển khoản:</p>
+            <strong id="qrMemo" style="color: var(--primary); font-size: 1.2rem; letter-spacing: 1px;"></strong>
+        </div>
+        <button class="confirm-btn" onclick="confirmPurchase()">XÁC NHẬN ĐÃ CHUYỂN KHOẢN</button>
+        <p onclick="document.getElementById('paymentModal').style.display='none'" style="margin-top: 15px; color: #999; cursor: pointer; font-size: 0.9rem;">Hủy bỏ</p>
+    </div>
+</div>
+
+<script>
+    const urlPath = window.location.pathname;
+    const accountId = urlPath.substring(urlPath.lastIndexOf('/') + 1);
+    let accountData = null;
+    let currentUserId = null;
+
+    function hasAcceptedPolicy() {
+        return document.getElementById('policyAgree').checked;
+    }
+
+    function togglePurchaseButtons() {
+        const accepted = hasAcceptedPolicy();
+        document.getElementById('btnQr').disabled = !accepted;
+        document.getElementById('btnBalance').disabled = !accepted;
+    }
+
+    function resetPurchaseButtons() {
+        const btnBalance = document.getElementById('btnBalance');
+        const btnQr = document.getElementById('btnQr');
+        const confirmBtn = document.querySelector('.confirm-btn');
+        btnBalance.innerHTML = '<i class="fas fa-wallet"></i> MUA BẰNG SỐ DƯ';
+        btnBalance.disabled = !hasAcceptedPolicy();
+        btnQr.disabled = !hasAcceptedPolicy();
+        if (confirmBtn) {
+            confirmBtn.innerText = "XÁC NHẬN ĐÃ CHUYỂN KHOẢN";
+            confirmBtn.disabled = false;
+        }
+    }
+
+    // Hàm làm mới captcha
+    function refreshCaptcha() {
+        const captchaImg = document.getElementById('captchaImage');
+        captchaImg.src = '/api/captcha/image?' + new Date().getTime();
+    }
+
+    // 1. Tải thông tin tài khoản
+    async function loadDetail() {
+        try {
+            const response = await fetch(`/api/v1/accounts/${accountId}`);
+            accountData = await response.json();
+
+            document.getElementById('accId').innerText = `Tài khoản #${accountData.id}`;
+            document.getElementById('accDesc').innerText = accountData.description;
+            const categoryName = accountData.category && accountData.category.name ? accountData.category.name : "Chưa phân loại";
+            const statusText = Number(accountData.status) === 0 ? "Đang bán" : "Đã bán";
+            document.getElementById('accMeta').innerText = `Game: ${categoryName} | Trạng thái: ${statusText}`;
+            document.getElementById('accPrice').innerText = new Intl.NumberFormat('vi-VN').format(accountData.price) + "đ";
+
+            // Render bảng ảnh
+            const body = document.getElementById('imageBody');
+            const images = accountData.images || [];
+            body.innerHTML = "";
+            if (images.length === 0) {
+                body.innerHTML = `<tr><td colspan="2" style="text-align:center; padding:20px; color:#bbb;">Nick này chưa có ảnh.</td></tr>`;
+                return;
+            }
+            for (let i = 0; i < images.length; i += 2) {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td><img src="${images[i].url}"></td>`;
+                if (images[i + 1]) {
+                    row.innerHTML += `<td><img src="${images[i+1].url}"></td>`;
+                } else {
+                    row.innerHTML += `<td></td>`;
+                }
+                body.appendChild(row);
+            }
+        } catch (e) {
+            console.error("Lỗi:", e);
+        }
+    }
+
+    async function loadCurrentUser() {
+        try {
+            const res = await fetch('/api/v1/users/me');
+            if (!res.ok) {
+                throw new Error("Không thể xác định user hiện tại.");
+            }
+            const user = await res.json();
+            currentUserId = user.id;
+        } catch (e) {
+            console.error("Lỗi lấy user hiện tại:", e);
+        }
+    }
+
+    // 2. Xử lý Thanh toán bằng QR
+    function showQR() {
+        if (!hasAcceptedPolicy()) {
+            alert("Vui lòng đọc và đồng ý với Chính sách bảo hành và Điều khoản sử dụng trước khi mua.");
+            return;
+        }
+        const BANK_ID = "MB";
+        const ACC_NO = "0987654321"; // Thay bằng STK của bạn
+        const amount = accountData.price;
+        const memo = `GSHOP${accountData.id}`;
+        const qrUrl = `https://img.vietqr.io/image/${BANK_ID}-${ACC_NO}-compact2.png?amount=${amount}&addInfo=${memo}`;
+
+        document.getElementById('qrCode').src = qrUrl;
+        document.getElementById('qrMemo').innerText = memo;
+        document.getElementById('paymentModal').style.display = 'flex';
+    }
+
+    // Xác nhận sau khi chuyển khoản QR (Giả lập)
+    async function confirmPurchase() {
+        const btn = document.querySelector('.confirm-btn');
+        btn.innerText = "ĐANG KIỂM TRA HỆ THỐNG...";
+        btn.disabled = true;
+
+        // Gọi API mua (Yêu cầu Backend đã trừ tiền hoặc Admin duyệt)
+        executeBuyAPI();
+    }
+
+    // 3. Xử lý Thanh toán bằng SỐ DƯ
+    async function payWithBalance() {
+        if (!hasAcceptedPolicy()) {
+            alert("Vui lòng đọc và đồng ý với Chính sách bảo hành và Điều khoản sử dụng trước khi mua.");
+            return;
+        }
+        const confirmPay = confirm(`Bạn có chắc chắn muốn dùng số dư để mua tài khoản này (${new Intl.NumberFormat('vi-VN').format(accountData.price)}đ) không?`);
+        if (!confirmPay) return;
+
+        const btn = document.getElementById('btnBalance');
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ĐANG XỬ LÝ...';
+        btn.disabled = true;
+
+        executeBuyAPI();
+    }
+
+    // Hàm gọi API mua hàng chung
+    async function executeBuyAPI() {
+        if (!currentUserId) {
+            alert("Không xác định được tài khoản đăng nhập. Vui lòng tải lại trang.");
+            location.reload();
+            return;
+        }
+
+        if (!hasAcceptedPolicy()) {
+            alert("Vui lòng đọc và đồng ý với Chính sách bảo hành và Điều khoản sử dụng trước khi mua.");
+            resetPurchaseButtons();
+            return;
+        }
+
+        const captchaInput = document.getElementById('captchaInput');
+        const captchaValue = captchaInput.value.trim();
+        if (!captchaValue) {
+            alert("Vui lòng nhập mã captcha!");
+            captchaInput.focus();
+            resetPurchaseButtons();
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/v1/orders/buy?userId=${currentUserId}&accountId=${accountId}&captcha=${encodeURIComponent(captchaValue)}`, {
+                method: 'POST'
+            });
+
+            if (response.ok) {
+                document.getElementById('paymentModal').style.display = 'none';
+                document.getElementById('actionArea').style.display = 'none';
+                document.getElementById('revealedBox').style.display = 'block';
+
+                document.getElementById('resUser').innerText = accountData.accUsername;
+                document.getElementById('resPass').innerText = accountData.accPassword;
+                alert("Mua thành công! Thông tin tài khoản đã hiển thị bên dưới.");
+            } else {
+                const errorMsg = await response.text();
+                alert("Giao dịch thất bại: " + (errorMsg || "Số dư không đủ hoặc tài khoản đã bán."));
+                
+                // Làm mới captcha nếu lỗi liên quan đến captcha
+                if (errorMsg && errorMsg.toLowerCase().includes("captcha")) {
+                    refreshCaptcha();
+                    document.getElementById('captchaInput').value = '';
+                    document.getElementById('captchaInput').focus();
+                }
+                
+                // Reset trạng thái nút
+                location.reload();
+            }
+        } catch (error) {
+            alert("Lỗi kết nối máy chủ.");
+        }
+    }
+
+    loadCurrentUser();
+    loadDetail();
+</script>
+
+</body>
+</html>

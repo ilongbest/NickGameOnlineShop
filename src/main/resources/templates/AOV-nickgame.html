@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liên Quân Mobile - G-SHOP</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary:#ff416c; --secondary:#ff4b2b; --dark:#0f0c29; --panel:rgba(255,255,255,.06); --border:rgba(255,255,255,.12); --success:#00ff88; }
+        * { box-sizing:border-box; margin:0; padding:0; font-family:'Poppins',sans-serif; }
+        body { min-height:100vh; color:white; background:radial-gradient(circle at center,#302b63 0%,var(--dark) 100%); }
+        header { position:sticky; top:0; z-index:10; background:#0f0c29; border-bottom:1px solid var(--border); padding:15px 8%; display:flex; justify-content:space-between; align-items:center; }
+        .logo a { font-size:1.8rem; font-weight:800; color:white; text-decoration:none; }
+        .page-title { color:var(--primary); font-weight:700; letter-spacing:2px; }
+        .container { max-width:1200px; margin:0 auto; padding:30px 20px; }
+        .btn-back { display:inline-flex; align-items:center; gap:8px; padding:10px 18px; background:var(--panel); border:1px solid var(--border); border-radius:12px; color:white; text-decoration:none; font-weight:600; margin-bottom:25px; }
+        .btn-back:hover { background:var(--primary); }
+        .filter-section { background:var(--panel); border:1px solid var(--border); border-radius:18px; padding:22px; display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:15px; margin-bottom:34px; }
+        .filter-group { display:flex; flex-direction:column; gap:8px; }
+        .filter-group label { font-size:.75rem; opacity:.72; font-weight:700; letter-spacing:1px; text-transform:uppercase; }
+        .filter-group input,.filter-group select { height:44px; background:rgba(255,255,255,.07); border:1px solid var(--border); border-radius:10px; color:white; padding:0 12px; outline:none; }
+        .filter-group option { color:#111; }
+        .btn-filter { height:44px; align-self:end; border:0; border-radius:10px; color:white; font-weight:800; cursor:pointer; background:linear-gradient(90deg,var(--primary),var(--secondary)); }
+        .nick-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:24px; }
+        .nick-card { background:var(--panel); border:1px solid var(--border); border-radius:18px; overflow:hidden; transition:.25s; }
+        .nick-card:hover { transform:translateY(-6px); border-color:var(--primary); }
+        .nick-img { height:180px; position:relative; background:#1a1a2e; }
+        .nick-img img { width:100%; height:100%; object-fit:cover; }
+        .tag { position:absolute; top:12px; left:12px; padding:5px 10px; border-radius:8px; font-size:.72rem; font-weight:800; color:#111; background:var(--success); }
+        .tag-vip,.tag-rank_high { background:linear-gradient(45deg,#ffd700,#ff8c00); }
+        .tag-skin_many { background:#75d7ff; }
+        .nick-id { position:absolute; top:12px; right:12px; background:rgba(0,0,0,.64); padding:5px 9px; border-radius:8px; font-size:.75rem; }
+        .nick-info { padding:18px; }
+        .nick-title { font-size:1.05rem; font-weight:800; margin-bottom:8px; }
+        .nick-desc { height:42px; overflow:hidden; color:rgba(255,255,255,.7); font-size:.88rem; margin-bottom:12px; }
+        .status-line { font-size:.8rem; margin-bottom:14px; }
+        .status-available { color:var(--success); }
+        .status-hidden { color:#ffb020; }
+        .nick-footer { display:flex; justify-content:space-between; align-items:center; gap:12px; border-top:1px solid var(--border); padding-top:14px; }
+        .price { color:var(--success); font-size:1.15rem; font-weight:900; }
+        .btn-actions { display:flex; gap:8px; }
+        .btn-buy,.btn-cart { border:1px solid var(--border); border-radius:9px; color:white; cursor:pointer; font-weight:700; }
+        .btn-buy { background:var(--primary); border-color:var(--primary); padding:8px 14px; }
+        .btn-cart { background:transparent; padding:8px 11px; }
+        .pagination { margin-top:26px; display:flex; align-items:center; justify-content:center; gap:10px; }
+        .page-btn { background:var(--panel); border:1px solid var(--border); color:white; padding:8px 14px; border-radius:9px; cursor:pointer; }
+        .page-btn:disabled { opacity:.45; cursor:not-allowed; }
+        .empty-message { grid-column:1/-1; text-align:center; color:rgba(255,255,255,.72); padding:34px 0; }
+    </style>
+</head>
+<body>
+<header>
+    <div class="logo"><a th:href="@{/home}"><i class="fas fa-bolt"></i> G-SHOP</a></div>
+    <div class="page-title">LIÊN QUÂN MOBILE</div>
+</header>
+
+<main class="container">
+    <a th:href="@{/home}" class="btn-back"><i class="fas fa-arrow-left"></i> Quay lại trang chủ</a>
+
+    <section class="filter-section">
+        <div class="filter-group">
+            <label>Mã nick</label>
+            <input type="number" id="searchId" placeholder="Ví dụ: 102">
+        </div>
+        <div class="filter-group">
+            <label>Sắp xếp giá</label>
+            <select id="sortFilter">
+                <option value="">Mới nhất</option>
+                <option value="priceAsc">Giá thấp đến cao</option>
+                <option value="priceDesc">Giá cao đến thấp</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>Trạng thái</label>
+            <select id="availableFilter">
+                <option value="true">Nick còn hàng</option>
+                <option value="false">Tất cả nick</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>Tag</label>
+            <select id="tagFilter">
+                <option value="all">Tất cả tag</option>
+                <option value="VIP">VIP</option>
+                <option value="CHEAP">Giá rẻ</option>
+                <option value="RANK_HIGH">Rank cao</option>
+                <option value="SKIN_MANY">Skin nhiều</option>
+            </select>
+        </div>
+        <button id="filterButton" class="btn-filter"><i class="fas fa-search"></i> Lọc ngay</button>
+    </section>
+
+    <section class="nick-grid" id="nickContainer"></section>
+    <div class="pagination">
+        <button class="page-btn" id="prevPageBtn">Trang trước</button>
+        <span id="pageInfo">Trang 1/1</span>
+        <button class="page-btn" id="nextPageBtn">Trang sau</button>
+    </div>
+</main>
+
+<script>
+    window.GSHOP_ACCOUNT_LIST = { categoryId: 1, gameName: 'Liên Quân Mobile', cartGame: 'AOV' };
+</script>
+<script src="/js/account-list.js"></script>
+</body>
+</html>

@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lịch sử giao dịch - G-SHOP</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #ff416c;
+            --dark-blue: #0f0c29;
+            --purple: #302b63;
+            --success: #00ff88;
+            --warning: #ffb347;
+            --danger: #ff5d5d;
+            --glass: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
+        body {
+            color: #fff;
+            background: radial-gradient(circle at center, var(--purple) 0%, var(--dark-blue) 100%);
+            min-height: 100vh;
+            padding: 28px 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #fff;
+            text-decoration: none;
+            border: 1px solid var(--glass-border);
+            background: var(--glass);
+            padding: 10px 16px;
+            border-radius: 10px;
+            margin-bottom: 18px;
+        }
+        .card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 18px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+        }
+        .title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+        .subtitle {
+            opacity: 0.8;
+            margin-bottom: 18px;
+            font-size: 0.92rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border-bottom: 1px solid var(--glass-border);
+            padding: 12px 10px;
+            text-align: left;
+            vertical-align: top;
+        }
+        th {
+            opacity: 0.75;
+            font-size: 0.85rem;
+        }
+        .type-tag {
+            padding: 4px 8px;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            display: inline-block;
+        }
+        .type-buy { background: rgba(255, 65, 108, 0.2); color: #ff7f9c; }
+        .type-topup { background: rgba(0, 255, 136, 0.18); color: #7effc7; }
+        .status {
+            font-weight: 700;
+            font-size: 0.82rem;
+        }
+        .status-success, .status-approved { color: var(--success); }
+        .status-pending { color: var(--warning); }
+        .status-failed, .status-rejected { color: var(--danger); }
+        .amount-minus { color: #ff8b8b; font-weight: 700; }
+        .amount-plus { color: var(--success); font-weight: 700; }
+        .empty {
+            padding: 20px;
+            text-align: center;
+            border: 1px dashed var(--glass-border);
+            border-radius: 12px;
+            opacity: 0.82;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <a href="/home" class="back-btn"><i class="fas fa-arrow-left"></i> Quay lại trang chủ</a>
+
+    <div class="card">
+        <div class="title">Lịch sử giao dịch</div>
+        <div class="subtitle">Hiển thị toàn bộ giao dịch nạp tiền và mua nick của tài khoản bạn.</div>
+
+        <div id="historyWrap">
+            <table id="historyTable" style="display:none;">
+                <thead>
+                <tr>
+                    <th>Loại</th>
+                    <th>Mã GD</th>
+                    <th>Số tiền</th>
+                    <th>Trạng thái</th>
+                    <th>Nội dung</th>
+                    <th>Thời gian</th>
+                </tr>
+                </thead>
+                <tbody id="historyBody"></tbody>
+            </table>
+            <div id="emptyState" class="empty">Đang tải dữ liệu giao dịch...</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function formatMoney(v) {
+        return new Intl.NumberFormat('vi-VN').format(v || 0) + 'đ';
+    }
+
+    function formatDate(v) {
+        if (!v) return '';
+        return new Date(v).toLocaleString('vi-VN');
+    }
+
+    function statusClass(status) {
+        const s = String(status || '').toUpperCase();
+        if (s === 'SUCCESS') return 'status-success';
+        if (s === 'APPROVED') return 'status-approved';
+        if (s === 'PENDING') return 'status-pending';
+        if (s === 'FAILED') return 'status-failed';
+        if (s === 'REJECTED') return 'status-rejected';
+        return '';
+    }
+
+    function statusLabel(status) {
+        const s = String(status || '').toUpperCase();
+        if (s === 'SUCCESS') return 'Thành công';
+        if (s === 'APPROVED') return 'Đã duyệt';
+        if (s === 'PENDING') return 'Chờ duyệt';
+        if (s === 'FAILED') return 'Thất bại';
+        if (s === 'REJECTED') return 'Từ chối';
+        return status || 'N/A';
+    }
+
+    async function loadHistory() {
+        const body = document.getElementById('historyBody');
+        const table = document.getElementById('historyTable');
+        const empty = document.getElementById('emptyState');
+
+        try {
+            const res = await fetch('/api/v1/transactions/me');
+            if (!res.ok) {
+                throw new Error('Không thể tải lịch sử giao dịch.');
+            }
+            const items = await res.json();
+
+            if (!Array.isArray(items) || items.length === 0) {
+                table.style.display = 'none';
+                empty.style.display = 'block';
+                empty.innerText = 'Bạn chưa có giao dịch nào.';
+                return;
+            }
+
+            body.innerHTML = items.map(item => {
+                const type = String(item.type || '').toUpperCase();
+                const isTopup = type === 'TOPUP';
+                const amountCls = isTopup ? 'amount-plus' : 'amount-minus';
+                const amountSign = isTopup ? '+' : '-';
+                const typeTag = isTopup
+                    ? '<span class="type-tag type-topup">NẠP TIỀN</span>'
+                    : '<span class="type-tag type-buy">MUA NICK</span>';
+
+                return `
+                    <tr>
+                        <td>${typeTag}</td>
+                        <td>#${item.refId ?? ''}</td>
+                        <td class="${amountCls}">${amountSign}${formatMoney(item.amount)}</td>
+                        <td class="status ${statusClass(item.status)}">${statusLabel(item.status)}</td>
+                        <td>${item.note || ''}</td>
+                        <td>${formatDate(item.createdAt)}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            empty.style.display = 'none';
+            table.style.display = 'table';
+        } catch (e) {
+            table.style.display = 'none';
+            empty.style.display = 'block';
+            empty.innerText = e.message || 'Có lỗi khi tải giao dịch.';
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadHistory);
+</script>
+</body>
+</html>

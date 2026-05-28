@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 640" role="img" aria-label="Free Fire survivor">
+  <defs>
+    <linearGradient id="jacket" x1="111" x2="324" y1="118" y2="595" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ffde59"/>
+      <stop offset=".45" stop-color="#ff6b2b"/>
+      <stop offset="1" stop-color="#1b1b2f"/>
+    </linearGradient>
+    <linearGradient id="flame" x1="145" x2="310" y1="63" y2="340" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#fff4a3"/>
+      <stop offset=".45" stop-color="#ff8c2b"/>
+      <stop offset="1" stop-color="#ff416c"/>
+    </linearGradient>
+    <filter id="heat" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feColorMatrix in="blur" values="1 0 0 0 1 0 .35 0 0 .4 0 0 .1 0 .05 0 0 0 .95 0"/>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <path d="M113 585c24-81 26-165 7-252l68-108h88l69 113c-26 76-25 159 0 248l-86 39-72-5z" fill="url(#jacket)"/>
+  <path d="M96 356c10-57 31-104 63-141l43 48-36 125z" fill="#16162d"/>
+  <path d="M286 261l42-42c32 49 43 97 33 145l-66 24z" fill="#16162d"/>
+  <path d="M174 92c26-25 68-27 96-4 31 25 36 71 11 103-25 31-73 35-103 8-32-29-34-79-4-107z" fill="#251323"/>
+  <path d="M154 118c29-48 91-64 139-24-55-4-94 12-118 49z" fill="url(#flame)" filter="url(#heat)"/>
+  <path d="M162 201l45 33 53-31 29 44-63 66-84-63z" fill="#eeeeee" opacity=".18"/>
+  <path d="M129 395l202-68 19 44-196 91z" fill="#0a0b13"/>
+  <path d="M291 325l42-14 24 70-43 16z" fill="#303047"/>
+  <path d="M160 454l49 7-18 154-67-29z" fill="#090912"/>
+  <path d="M269 454l45-6 37 139-66 28z" fill="#090912"/>
+  <path d="M137 528c58-18 124-16 198 6" fill="none" stroke="#ffde59" stroke-width="8" stroke-linecap="round" opacity=".75"/>
+  <path d="M106 174c35-60 83-94 143-101" fill="none" stroke="#ff8c2b" stroke-width="9" stroke-linecap="round" opacity=".55"/>
+</svg>

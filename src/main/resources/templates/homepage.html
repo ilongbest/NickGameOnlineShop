@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>G-SHOP - Hệ Thống Nick Game Chuyên Nghiệp</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #ff416c;
+            --secondary: #ff4b2b;
+            --dark-blue: #0f0c29;
+            --purple: #302b63;
+            --success: #00ff88;
+            --glass: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --scene-glow: rgba(120, 119, 255, 0.35);
+            --image-position: center;
+            --accent: #7c5cff;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
+
+        body {
+            color: white;
+            background: radial-gradient(circle at center, var(--purple) 0%, var(--dark-blue) 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* --- BACKGROUND ANIMATION --- */
+        .bg-animate {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 0; overflow: hidden; pointer-events: none;
+        }
+        .circle {
+            position: absolute; background: rgba(255, 65, 108, 0.05);
+            border-radius: 50%; animation: move 20s infinite linear;
+        }
+        @keyframes move {
+            from { transform: translateY(100vh) rotate(0deg); }
+            to { transform: translateY(-10vh) rotate(360deg); }
+        }
+
+        .character-stage {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            overflow: hidden;
+            pointer-events: none;
+            isolation: isolate;
+        }
+
+        .character-stage::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background:
+                linear-gradient(90deg, rgba(15, 12, 41, 0.88) 0%, rgba(15, 12, 41, 0.35) 48%, rgba(15, 12, 41, 0.82) 100%),
+                radial-gradient(circle at 72% 42%, var(--scene-glow, rgba(255, 65, 108, 0.28)), transparent 38%),
+                radial-gradient(circle at 18% 76%, rgba(0, 255, 136, 0.12), transparent 32%);
+            transition: background 900ms ease;
+        }
+
+        .character-stage::after {
+            content: "";
+            position: absolute;
+            inset: auto 0 0 0;
+            height: 36vh;
+            background: linear-gradient(0deg, rgba(15, 12, 41, 0.96), transparent);
+        }
+
+        .character-frame {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            transform: translateY(10px) scale(0.99);
+            transition: opacity 1100ms ease, transform 5200ms cubic-bezier(.2, .8, .2, 1);
+        }
+
+        .character-frame.active {
+            opacity: 0.7;
+            transform: translateY(0) scale(1);
+        }
+
+        .character-frame.leaving {
+            opacity: 0;
+            transform: translateY(-8px) scale(0.995);
+        }
+
+        .character-art {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: var(--image-position, center);
+            filter: saturate(1.15) contrast(1.08);
+        }
+
+        .character-art.fallback-art {
+            object-fit: contain;
+            object-position: right bottom;
+            width: min(46vw, 460px);
+            height: auto;
+            margin-left: auto;
+            margin-right: clamp(16px, 7vw, 110px);
+            margin-top: auto;
+            filter: drop-shadow(0 34px 55px rgba(0, 0, 0, 0.56));
+        }
+
+        .character-caption {
+            position: absolute;
+            left: clamp(18px, 7vw, 92px);
+            bottom: clamp(72px, 13vh, 132px);
+            display: grid;
+            gap: 6px;
+            text-align: left;
+            opacity: 0;
+            transform: translateY(18px);
+            transition: opacity 600ms ease 160ms, transform 600ms ease 160ms;
+        }
+
+        .character-frame.active .character-caption {
+            opacity: 0.86;
+            transform: translateY(0);
+        }
+
+        .character-game {
+            color: var(--accent, #ff416c);
+            font-size: 0.78rem;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        .character-name {
+            color: rgba(255, 255, 255, 0.82);
+            font-size: clamp(1.4rem, 3vw, 2.8rem);
+            font-weight: 800;
+            line-height: 1;
+            text-shadow: 0 8px 28px rgba(0, 0, 0, 0.55);
+        }
+
+        /* --- HEADER --- */
+        header {
+            background: #0f0c29;
+            backdrop-filter: blur(15px);
+            padding: 12px 8%;
+            display: flex; justify-content: space-between; align-items: center;
+            position: sticky; top: 0; z-index: 1000;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .logo {
+            font-size: 1.8rem; font-weight: 800;
+            background: linear-gradient(to right, #fff, var(--primary));
+            background-clip: text;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            display: flex; align-items: center; gap: 10px;
+        }
+
+        /* --- USER AREA (BALANCE + AVATAR) --- */
+        .user-area { position: relative; }
+
+        .user-info-pill {
+            display: flex; align-items: center; gap: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 5px 5px 5px 15px; border-radius: 50px;
+            border: 1px solid var(--glass-border);
+            cursor: pointer; transition: 0.3s;
+        }
+        .user-info-pill:hover { background: rgba(255, 255, 255, 0.1); border-color: var(--primary); }
+
+        .balance-data { display: flex; flex-direction: column; align-items: flex-end; }
+        .balance-label { font-size: 0.6rem; text-transform: uppercase; opacity: 0.6; letter-spacing: 1px; }
+        .balance-amount { font-weight: 700; color: var(--success); font-size: 0.9rem; }
+
+        .avatar-box {
+            width: 38px; height: 38px; border-radius: 50%;
+            border: 2px solid var(--primary); overflow: hidden;
+        }
+        .avatar-box img { width: 100%; height: 100%; object-fit: cover; }
+        .cart-icon {
+            position: relative;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .cart-badge {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            min-width: 18px;
+            height: 18px;
+            padding: 0 5px;
+            border-radius: 999px;
+            background: var(--primary);
+            color: white;
+            font-size: 0.68rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* DROPDOWN MENU */
+        .dropdown-menu {
+            position: absolute; top: 55px; right: 0;
+            background: #1a1a2e; width: 220px;
+            border-radius: 12px; border: 1px solid var(--glass-border);
+            display: none; flex-direction: column; overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .dropdown-menu a {
+            padding: 12px 20px; color: white; text-decoration: none; font-size: 0.85rem;
+            display: flex; align-items: center; gap: 12px; transition: 0.2s;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+        }
+        .dropdown-menu a:hover { background: var(--primary); }
+
+        /* --- MAIN CONTENT --- */
+        .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; position: relative; z-index: 2; }
+        .section-header { font-size: 1.4rem; font-weight: 700; margin: 40px 0 20px; display: flex; align-items: center; gap: 10px; }
+        .section-header i { color: var(--primary); }
+
+        /* CATEGORY PACKAGES */
+        .pkg-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 15px; }
+        .pkg-card {
+            background: var(--glass); padding: 25px; border-radius: 20px;
+            text-align: center; border: 1px solid var(--glass-border);
+            transition: 0.3s; cursor: pointer;
+        }
+        .pkg-card:hover { background: var(--primary); transform: translateY(-5px); box-shadow: 0 10px 20px rgba(255, 65, 108, 0.3); }
+        .pkg-card i { font-size: 2rem; margin-bottom: 12px; display: block; }
+
+        /* BEST SELLER STATS */
+        .stats-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; }
+        .stat-item {
+            background: linear-gradient(145deg, rgba(255,255,255,0.05), rgba(255,255,255,0.01));
+            padding: 35px; border-radius: 25px; border: 1px solid var(--glass-border);
+            text-align: center; position: relative;
+        }
+        .stat-val { font-size: 2.8rem; font-weight: 800; color: var(--success); display: block; }
+        .stat-name { font-size: 1.1rem; font-weight: 600; margin-top: 10px; color: #ddd; }
+        .trending-tag { position: absolute; top: 15px; right: 20px; color: var(--primary); font-size: 1.2rem; }
+
+        .btn-user-detail {
+            text-decoration: none;
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px 15px;
+            border-radius: 8px;
+            transition: 0.3s;
+        }
+        .btn-user-detail:hover {
+            background: #ff416c; /* Màu hồng giống theme bạn đang dùng */
+        }
+        .policy-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 3000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.72);
+            backdrop-filter: blur(10px);
+        }
+        .policy-dialog {
+            width: min(920px, 100%);
+            max-height: 86vh;
+            overflow: hidden;
+            background: #17172d;
+            border: 1px solid var(--glass-border);
+            border-radius: 18px;
+            box-shadow: 0 28px 70px rgba(0, 0, 0, 0.55);
+            display: flex;
+            flex-direction: column;
+        }
+        .policy-header {
+            padding: 22px 26px;
+            border-bottom: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+        .policy-header h2 { font-size: 1.25rem; margin: 0; color: #fff; }
+        .policy-close {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            border: 1px solid var(--glass-border);
+            background: rgba(255, 255, 255, 0.06);
+            color: white;
+            cursor: pointer;
+        }
+        .policy-body {
+            padding: 24px 26px;
+            overflow-y: auto;
+            line-height: 1.6;
+            color: rgba(255, 255, 255, 0.86);
+        }
+        .policy-body h3 { margin: 18px 0 10px; color: var(--primary); font-size: 1.05rem; }
+        .policy-body h4 { margin: 14px 0 6px; color: var(--success); font-size: 0.95rem; }
+        .policy-body ul { padding-left: 22px; margin-bottom: 10px; }
+        .policy-footer {
+            padding: 18px 26px;
+            border-top: 1px solid var(--glass-border);
+            display: flex;
+            justify-content: flex-end;
+        }
+        .policy-accept {
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+            font-weight: 700;
+            padding: 12px 20px;
+            cursor: pointer;
+        }
+        @media (max-width: 760px) {
+            .character-frame {
+                transform: translateY(8px) scale(1);
+            }
+
+            .character-frame.active {
+                opacity: 0.38;
+            }
+
+            .character-art {
+                width: 100%;
+                height: 100%;
+            }
+
+            .character-art.fallback-art {
+                width: 370px;
+                margin-right: -86px;
+            }
+
+            .character-caption {
+                display: none;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .character-frame,
+            .circle {
+                animation: none !important;
+                transition: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="bg-animate" id="bgItems"></div>
+<div class="character-stage" id="characterStage" aria-hidden="true"></div>
+
+<header>
+    <div class="logo"><a href="/home"><i class="fas fa-bolt"></i> G-SHOP</a></div>
+
+    <div class="user-area">
+        <div class="user-info-pill" onclick="toggleMenu()">
+            <div class="balance-data">
+                <span class="balance-amount" th:text="${#numbers.formatDecimal(balance, 0, 'COMMA', 0, 'POINT')}">0</span>
+                <span class="currency">VNĐ</span>
+            </div>
+            <div class="avatar-box">
+                <img th:src="${avatarUrl != null and !#strings.isEmpty(avatarUrl) ? avatarUrl : '/images/default-avatar.png'}" src="/images/default-avatar.png" id="mainAvatar" class="user-avatar">
+            </div>
+            <div class="cart-icon" onclick="goToCart(event)">
+                <i class="fas fa-shopping-cart"></i>
+                <span class="cart-badge" id="cartCountBadge">0</span>
+            </div>
+            <i class="fas fa-chevron-down" style="font-size: 0.7rem; opacity: 0.5; margin-right: 5px;"></i>
+        </div>
+
+        <div class="dropdown-menu" id="navMenu">
+            <a href="javascript:void(0)" onclick="goToProfile()" class="btn-user-detail">
+                <i class="fas fa-box-open"></i> Tủ đồ của tôi
+            </a>
+            <a href="/order-payment"><i class="fas fa-university"></i> Nạp tiền vào ví</a>
+            <a href="/payment-history"><i class="fas fa-history"></i> Lịch sử giao dịch</a>
+            <a href="/login" style="color: var(--primary);"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+        </div>
+    </div>
+</header>
+
+<div class="container">
+    <!-- DANH MỤC GAME -->
+    <h2 class="section-header"><i class="fas fa-shapes"></i> DANH MỤC SẢN PHẨM</h2>
+    <div class="pkg-grid">
+        <!-- Liên Quân -->
+        <a href="/AOV-nickgame" style="text-decoration: none; color: inherit;">
+            <div class="pkg-card"><i class="fas fa-mobile-alt"></i>Liên Quân</div>
+        </a>
+
+        <!-- Free Fire -->
+        <a href="/freefire-nickgame" style="text-decoration: none; color: inherit;">
+            <div class="pkg-card"><i class="fas fa-fire-alt"></i>Free Fire</div>
+        </a>
+
+        <!-- Valorant -->
+        <a href="/valorant-nickgame" style="text-decoration: none; color: inherit;">
+            <div class="pkg-card"><i class="fas fa-crosshairs"></i>Valorant</div>
+        </a>
+    </div>
+
+    <!-- THỐNG KÊ BÁN CHẠY -->
+    <h2 class="section-header"><i class="fas fa-chart-bar"></i> TỰA GAME BÁN CHẠY (24H)</h2>
+    <div class="stats-container">
+        <div class="stat-item">
+            <i class="fas fa-level-up-alt trending-tag"></i>
+            <span style="font-size: 0.7rem; opacity: 0.5; text-transform: uppercase;">Tổng số tài khoản đã bán</span>
+            <span class="stat-val">420</span>
+            <div class="stat-name">Liên Quân Mobile</div>
+        </div>
+        <div class="stat-item">
+            <i class="fas fa-crown trending-tag" style="color: gold;"></i>
+            <span style="font-size: 0.7rem; opacity: 0.5; text-transform: uppercase;">Tổng số tài khoản đã bán</span>
+            <span class="stat-val">356</span>
+            <div class="stat-name">Free Fire</div>
+        </div>
+        <div class="stat-item">
+            <i class="fas fa-fire trending-tag"></i>
+            <span style="font-size: 0.7rem; opacity: 0.5; text-transform: uppercase;">Tổng số tài khoản đã bán</span>
+            <span class="stat-val">182</span>
+            <div class="stat-name">Valorant</div>
+        </div>
+    </div>
+</div>
+
+<div class="policy-modal" id="policyModal">
+    <div class="policy-dialog">
+        <div class="policy-header">
+            <h2><i class="fas fa-shield-alt"></i> Chính sách bảo hành và điều khoản sử dụng</h2>
+            <button type="button" class="policy-close" onclick="closePolicyModal()" aria-label="Đóng">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="policy-body">
+            <h3>1. Chính sách bảo hành</h3>
+            <h4>Đối tượng áp dụng</h4>
+            <p>Áp dụng cho tất cả giao dịch mua tài khoản game tại hệ thống G-SHOP, bao gồm Liên Quân, Valorant, Free Fire và các sản phẩm tương tự.</p>
+
+            <h4>Điều kiện được bảo hành</h4>
+            <ul>
+                <li>Sai thông tin đăng nhập hoặc mật khẩu ngay khi hệ thống bàn giao.</li>
+                <li>Tài khoản không đúng mô tả, hình ảnh, cấp độ, bảng ngọc, skin hoặc rank đã đăng trên website.</li>
+                <li>Tài khoản bị tranh chấp, bị chủ cũ lấy lại hoặc bị khóa do lỗi phát sinh trước thời điểm bán mà G-SHOP không thông báo trước.</li>
+            </ul>
+
+            <h4>Trường hợp từ chối bảo hành</h4>
+            <ul>
+                <li>Khách hàng làm mất tài khoản do để lộ mật khẩu, nhiễm mã độc, hoặc cho người khác mượn dùng.</li>
+                <li>Tài khoản bị khóa sau khi mua do dùng hack, cheat, mod skin, nạp lậu, toxic hoặc hành vi vi phạm quy định nhà phát hành.</li>
+                <li>Khiếu nại lỗi đăng nhập hoặc sai mô tả sau 24 giờ kể từ lúc giao nick thành công mà không có bằng chứng rõ ràng.</li>
+            </ul>
+
+            <h4>Thời gian xử lý khiếu nại</h4>
+            <ul>
+                <li>Yêu cầu hỗ trợ phải gửi trong vòng 24 giờ từ thời điểm mua hàng.</li>
+                <li>G-SHOP sẽ kiểm tra log hệ thống và phản hồi trong tối đa 12 giờ làm việc.</li>
+            </ul>
+
+            <h3>2. Điều khoản sử dụng</h3>
+            <h4>Tài khoản thành viên</h4>
+            <ul>
+                <li>Người dùng cần cung cấp thông tin chính xác để hệ thống hỗ trợ bảo mật và xử lý giao dịch.</li>
+                <li>Người dùng chịu trách nhiệm bảo mật tài khoản G-SHOP. Mọi giao dịch phát sinh từ tài khoản được xem là do chủ tài khoản thực hiện.</li>
+            </ul>
+
+            <h4>Nạp tiền và giao dịch</h4>
+            <ul>
+                <li>Tiền đã nạp vào ví G-SHOP không được quy đổi ngược thành tiền mặt, trừ trường hợp lỗi từ phía G-SHOP.</li>
+                <li>Số dư ví chỉ dùng để mua sản phẩm hoặc dịch vụ hiện có trên website G-SHOP.</li>
+            </ul>
+
+            <h4>Trách nhiệm của khách hàng</h4>
+            <ul>
+                <li>Đổi toàn bộ thông tin bảo mật ngay sau khi nhận tài khoản.</li>
+                <li>Nên quay video từ lúc bấm mua nick đến lúc đăng nhập thử vào game để làm bằng chứng khi cần hỗ trợ.</li>
+            </ul>
+
+            <h4>Miễn trừ trách nhiệm</h4>
+            <ul>
+                <li>G-SHOP không chịu trách nhiệm nếu nhà phát hành khóa tài khoản do chính sách riêng, thay đổi IP hoặc thiết bị đăng nhập đột ngột.</li>
+                <li>G-SHOP không chịu trách nhiệm với gián đoạn do đường truyền internet, cổng thanh toán bên thứ ba hoặc bảo trì máy chủ game.</li>
+            </ul>
+        </div>
+        <div class="policy-footer">
+            <button type="button" class="policy-accept" onclick="closePolicyModal()">Tôi đã hiểu</button>
+        </div>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    function shouldShowPolicyModal() {
+        const params = new URLSearchParams(window.location.search);
+        return params.get('loginSuccess') === 'true';
+    }
+
+    function openPolicyModal() {
+        const modal = document.getElementById('policyModal');
+        if (modal) {
+            modal.style.display = 'flex';
+        }
+    }
+
+    function closePolicyModal() {
+        const modal = document.getElementById('policyModal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+        const url = new URL(window.location.href);
+        url.searchParams.delete('loginSuccess');
+        window.history.replaceState({}, document.title, url.pathname + url.search);
+    }
+
+    // Toggle Dropdown Menu
+    function toggleMenu() {
+        const menu = document.getElementById('navMenu');
+        menu.style.display = (menu.style.display === 'flex') ? 'none' : 'flex';
+    }
+
+    // Đóng menu khi click ra ngoài
+    window.addEventListener('click', function(e) {
+        if (!document.querySelector('.user-area').contains(e.target)) {
+            document.getElementById('navMenu').style.display = 'none';
+        }
+    });
+
+    // Tạo hiệu ứng bong bóng bay nền cho sống động
+    const bg = document.getElementById('bgItems');
+    for(let i=0; i<15; i++) {
+        const circle = document.createElement('div');
+        circle.className = 'circle';
+        const size = Math.random() * 100 + 50;
+        circle.style.width = size + 'px';
+        circle.style.height = size + 'px';
+        circle.style.left = Math.random() * 100 + '%';
+        circle.style.animationDelay = Math.random() * 10 + 's';
+        circle.style.animationDuration = (Math.random() * 10 + 15) + 's';
+        bg.appendChild(circle);
+    }
+    // Gọi đến AccountController để lấy danh sách nick hoặc số lượng đã bán
+        const characterSlides = [
+            {
+                game: 'Lien Quan Mobile',
+                name: 'Maloch',
+                accent: '#56b9ff',
+                glow: 'rgba(39, 123, 255, 0.34)',
+                image: '/images/home-slides/maloch.png',
+                fallback: '/images/characters/aov-hero.svg',
+                position: 'center center'
+            },
+            {
+                game: 'Valorant',
+                name: 'Initiator',
+                accent: '#ff5f6f',
+                glow: 'rgba(255, 95, 111, 0.32)',
+                image: '/images/home-slides/skye.png',
+                fallback: '/images/characters/valorant-duelist.svg',
+                position: 'center 28%'
+            },
+            {
+                game: 'Free Fire',
+                name: 'Fire Squad',
+                accent: '#ff7b2f',
+                glow: 'rgba(255, 123, 47, 0.36)',
+                image: '/images/home-slides/freefire.png',
+                fallback: '/images/characters/freefire-survivor.svg',
+                position: 'center center'
+            }
+        ];
+
+        function initCharacterStage() {
+            const stage = document.getElementById('characterStage');
+            if (!stage) return;
+
+            characterSlides.forEach((item, index) => {
+                const frame = document.createElement('div');
+                frame.className = 'character-frame';
+                frame.style.setProperty('--accent', item.accent);
+                frame.style.setProperty('--image-position', item.position);
+                frame.innerHTML = `
+                    <img class="character-art" src="${item.image}" data-fallback="${item.fallback}" alt="">
+                    <div class="character-caption">
+                        <span class="character-game">${item.game}</span>
+                        <span class="character-name">${item.name}</span>
+                    </div>
+                `;
+                const image = frame.querySelector('.character-art');
+                image.addEventListener('error', () => {
+                    if (image.src.endsWith(item.fallback)) return;
+                    image.src = item.fallback;
+                    image.classList.add('fallback-art');
+                });
+                if (index === 0) {
+                    frame.classList.add('active');
+                    stage.style.setProperty('--scene-glow', item.glow);
+                }
+                stage.appendChild(frame);
+            });
+
+            let activeIndex = 0;
+            const frames = Array.from(stage.querySelectorAll('.character-frame'));
+            setInterval(() => {
+                const current = frames[activeIndex];
+                current.classList.remove('active');
+                current.classList.add('leaving');
+
+                activeIndex = (activeIndex + 1) % frames.length;
+                const next = frames[activeIndex];
+                stage.style.setProperty('--scene-glow', characterSlides[activeIndex].glow);
+                next.classList.remove('leaving');
+                next.classList.add('active');
+
+                window.setTimeout(() => current.classList.remove('leaving'), 950);
+            }, 4200);
+        }
+
+        initCharacterStage();
+
+	    fetch('/api/v1/accounts')
+        .then(response => response.json())
+        .then(data => {
+            // Logic để đếm số lượng tài khoản đã bán theo từng tựa game
+            // và hiển thị vào các thẻ "Thống kê bán chạy" mà mình đã làm ở trên
+            console.log("Danh sách account từ API:", data);
+        });
+
+    function buyNow(accountId) {
+        const userId = 3; // Lấy ID của user hiện tại
+        fetch(`/api/v1/orders/buy?userId=${userId}&accountId=${accountId}`, {
+            method: 'POST'
+        })
+            .then(response => {
+                if(response.ok) alert("Mua thành công!");
+                else alert("Số dư không đủ hoặc lỗi hệ thống");
+            });
+    }
+    function loadCartCount() {
+        try {
+            const items = JSON.parse(localStorage.getItem('gshopCartItems') || '[]');
+            const count = Array.isArray(items) ? items.length : 0;
+            const badge = document.getElementById('cartCountBadge');
+            if (badge) badge.innerText = count;
+        } catch (e) {
+            const badge = document.getElementById('cartCountBadge');
+            if (badge) badge.innerText = 0;
+        }
+    }
+
+    async function updateUser() {
+        // Lấy link ảnh hiện tại đang hiển thị trên giao diện
+        const avatarUrl = document.getElementById('avatarImg').src;
+        const email = document.getElementById('emailInput').value;
+
+        const userData = {
+            email: email,
+            avatarUrl: avatarUrl // Đảm bảo tên trường này khớp chính xác với Entity User
+        };
+
+        try {
+            const response = await fetch(`/api/v1/users/${userId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(userData)
+            });
+
+            if (response.ok) {
+                alert("Cập nhật thành công!");
+                location.reload();
+            } else {
+                alert("Cập nhật thất bại!");
+            }
+        } catch (error) {
+            console.error("Lỗi:", error);
+        }
+    }
+        let currentUserId = /*[[${currentUserId}]]*/ 0;
+
+        // Tải thông tin hiển thị lên Header
+        async function loadHeader   () {
+            try {
+                // Gọi API lấy thông tin Profile mới nhất
+                const res = await fetch('/api/v1/users/me');
+                if (res.ok) {
+                    const user = await res.json();
+                    if (user && user.id) {
+                        currentUserId = user.id;
+                    }
+
+                    // Cập nhật Avatar và thêm timestamp để xóa Cache trình duyệt
+                    if (user.avatarUrl) {
+                        const avatarElement = document.getElementById('mainAvatar');
+                        if (avatarElement) {
+                            avatarElement.src = buildAvatarUrl(user.avatarUrl);
+                        }
+                    }
+
+                    const nameDisplay = document.getElementById('headerUsername');
+                    if (nameDisplay) nameDisplay.innerText = user.username;
+
+                } else {
+                    console.error("Không tìm thấy thông tin User ID:", currentUserId);
+                }
+            } catch (e) {
+                console.error("Lỗi kết nối API:", e);
+            }
+        }
+
+        function goToProfile() {
+            window.location.href = `/user-detail?id=${currentUserId}`;
+        }
+        function buildAvatarUrl(avatarUrl) {
+            if (!avatarUrl) {
+                return '/images/default-avatar.png';
+            }
+            const timestamp = new Date().getTime();
+            const separator = avatarUrl.includes('?') ? '&' : '?';
+            return `${avatarUrl}${separator}t=${timestamp}`;
+        }
+        function goToCart(event) {
+            if (event) {
+                event.stopPropagation();
+            }
+            window.location.href = '/cart-item';
+        }
+
+        window.addEventListener('DOMContentLoaded', loadHeader);
+        window.addEventListener('DOMContentLoaded', loadCartCount);
+        window.addEventListener('DOMContentLoaded', function() {
+            if (shouldShowPolicyModal()) {
+                openPolicyModal();
+            }
+        });
+</script>
+</body>
+</html>

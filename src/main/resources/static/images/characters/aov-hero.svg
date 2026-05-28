@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 640" role="img" aria-label="Lien Quan hero">
+  <defs>
+    <linearGradient id="armor" x1="70" x2="350" y1="110" y2="600" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ffe7a3"/>
+      <stop offset=".45" stop-color="#ff416c"/>
+      <stop offset="1" stop-color="#302b63"/>
+    </linearGradient>
+    <linearGradient id="blade" x1="235" x2="385" y1="65" y2="470" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ffffff"/>
+      <stop offset=".5" stop-color="#85f7ff"/>
+      <stop offset="1" stop-color="#ff416c"/>
+    </linearGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="7" result="blur"/>
+      <feColorMatrix in="blur" values="1 0 0 0 1 0 .45 0 0 .35 0 0 1 0 .8 0 0 0 .9 0"/>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <path d="M280 34c34 58 53 134 57 228l-45 22c-13-85-34-158-67-219z" fill="url(#blade)" filter="url(#glow)" opacity=".92"/>
+  <path d="M169 82c33-22 75-17 99 15 20 27 18 67-5 94-25 28-70 32-100 7-35-29-32-90 6-116z" fill="#241334"/>
+  <path d="M132 168l45-65 107 2 35 76-46 34-93-2z" fill="url(#armor)" filter="url(#glow)"/>
+  <path d="M140 210c-33 46-47 101-42 166l71-10 23-120z" fill="#25164a"/>
+  <path d="M274 218l60 56c19 18 27 44 21 69l-10 43-63-26-26-116z" fill="#1d1238"/>
+  <path d="M177 224h88l53 314-97 55-104-57z" fill="url(#armor)"/>
+  <path d="M173 265l93 3 13 92-52 34-68-31z" fill="#ffffff" opacity=".18"/>
+  <path d="M99 391l70-24 7 168-57 55z" fill="#171024"/>
+  <path d="M282 361l66 31-29 172-71-32z" fill="#171024"/>
+  <path d="M150 540l70 37 65-38 21 54-89 35-91-34z" fill="#0d0920"/>
+  <path d="M152 101c39-57 116-51 149 7-34-9-79-4-130 14z" fill="#ffda75"/>
+  <path d="M154 146c37 13 83 13 129 0-9 46-36 73-70 73-32 0-55-26-59-73z" fill="#1a102d"/>
+  <path d="M87 452c76-52 169-64 277-34" fill="none" stroke="#85f7ff" stroke-width="7" stroke-linecap="round" opacity=".65"/>
+</svg>

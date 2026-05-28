@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng ký G-SHOP - Xác thực OTP</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* Sử dụng lại Style Glassmorphism bạn đã có */
+        :root { --primary: #00ff88; --dark: #0f0c29; --secondary: #ff4b2b; }
+        body { background: radial-gradient(circle, #302b63, #0f0c29); height: 100vh; display: flex; align-items: center; justify-content: center; font-family: 'Poppins', sans-serif; color: white; }
+        .auth-card { background: rgba(255,255,255,0.05); backdrop-filter: blur(15px); padding: 40px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); width: 400px; }
+
+        .input-group { position: relative; margin-bottom: 20px; }
+        .input-group i.icon-left { position: absolute; left: 15px; top: 18px; color: var(--primary); }
+        .input-group i.icon-right { position: absolute; right: 15px; top: 18px; color: var(--primary); cursor: pointer; }
+        .input-group input { width: 100%; padding: 15px 45px 15px 45px; background: rgba(255,255,255,0.1); border: 1px solid transparent; border-radius: 10px; color: white; outline: none; }
+        .input-group input:focus { border-color: var(--primary); }
+
+        /* Nút gửi OTP nằm trong ô input */
+        .otp-btn { position: absolute; right: 10px; top: 8px; background: var(--primary); color: #000; border: none; padding: 8px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.8rem; }
+        .otp-btn:disabled { background: #555; color: #ccc; cursor: not-allowed; }
+
+        .btn-reg { width: 100%; padding: 15px; background: var(--primary); border: none; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+
+        .modal-content {
+            background: #1a1a2e;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px;
+            color: white;
+        }
+        .modal-header {
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .modal-footer {
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        .btn-close {
+            filter: invert(1);
+        }
+    </style>
+</head>
+<body>
+
+<div class="auth-card">
+    <h2 style="text-align: center; margin-bottom: 30px;">ĐĂNG KÝ HỆ THỐNG</h2>
+
+    <form th:action="@{/register}" method="post">
+        <!-- Nhập Username -->
+        <div class="input-group">
+            <i class="fas fa-user icon-left"></i>
+            <input type="text" name="username" placeholder="Tên tài khoản" required>
+        </div>
+
+        <!-- Nhập Email và Gửi OTP -->
+        <div class="input-group">
+            <i class="fas fa-envelope icon-left"></i>
+            <input type="email" name="email" id="emailInput" placeholder="Nhập Email của bạn" required>
+            <button type="button" class="otp-btn" id="sendOtpBtn" onclick="handleSendOtp()">GỬI MÃ</button>
+        </div>
+
+        <!-- Nhập OTP -->
+        <div class="input-group">
+            <i class="fas fa-shield-alt icon-left"></i>
+            <input type="text" name="otp" placeholder="Nhập mã OTP 6 số" required maxlength="6">
+        </div>
+
+        <!-- Nhập Password -->
+        <div class="input-group">
+            <i class="fas fa-lock icon-left"></i>
+            <input type="password" name="password" id="registerPassword" placeholder="Mật khẩu" required>
+            <i class="fas fa-eye icon-right" id="toggleRegisterPassword" onclick="toggleRegisterPassword()"></i>
+        </div>
+
+        <button type="submit" class="btn-reg">XÁC NHẬN & ĐĂNG KÝ</button>
+    </form>
+</div>
+
+<!-- Modal Thông báo -->
+<div class="modal fade" id="notificationModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">Thông báo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="modalMessage"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Hàm hiển thị modal thông báo
+    function showNotification(title, message, isSuccess) {
+        const modalTitle = document.getElementById('modalTitle');
+        const modalMessage = document.getElementById('modalMessage');
+        const modal = new bootstrap.Modal(document.getElementById('notificationModal'));
+        
+        modalTitle.innerHTML = '<i class="fas fa-' + (isSuccess ? 'check-circle' : 'exclamation-triangle') + ' me-2" style="color: ' + (isSuccess ? '#00ff88' : '#ff4b2b') + ';"></i>' + title;
+        modalMessage.textContent = message;
+        modal.show();
+    }
+
+    function handleSendOtp() {
+        const email = document.getElementById('emailInput').value;
+        const btn = document.getElementById('sendOtpBtn');
+
+        if (!email || !email.includes('@')) {
+            showNotification('Lỗi', 'Vui lòng nhập email hợp lệ!', false);
+            return;
+        }
+
+        // Gửi yêu cầu qua Ajax
+        const formData = new FormData();
+        formData.append('email', email);
+
+        fetch('/api/send-otp', {
+            method: 'POST',
+            body: formData
+        }).then(response => {
+            if (response.ok) {
+                startTimer(btn);
+                showNotification('Thành công', 'Mã xác thực đã được gửi đến email của bạn!', true);
+            } else {
+                showNotification('Lỗi', 'Có lỗi xảy ra, vui lòng thử lại.', false);
+            }
+        });
+    }
+
+    function startTimer(btn) {
+        let timeLeft = 60;
+        btn.disabled = true;
+        const timer = setInterval(() => {
+            if (timeLeft <= 0) {
+                clearInterval(timer);
+                btn.innerText = "GỬI LẠI";
+                btn.disabled = false;
+            } else {
+                btn.innerText = timeLeft + "s";
+                timeLeft--;
+            }
+        }, 1000);
+    }
+
+    // Hàm hiện/ẩn mật khẩu
+    function toggleRegisterPassword() {
+        const passwordInput = document.getElementById('registerPassword');
+        const toggleIcon = document.getElementById('toggleRegisterPassword');
+        
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            toggleIcon.className = 'fas fa-eye-slash icon-right';
+        } else {
+            passwordInput.type = 'password';
+            toggleIcon.className = 'fas fa-eye icon-right';
+        }
+    }
+
+    // Kiểm tra và hiển thị thông báo khi trang load
+    window.addEventListener('DOMContentLoaded', function() {
+        const errorDiv = document.querySelector('[th\\:if="${error}"]');
+        if (errorDiv && errorDiv.textContent) {
+            showNotification('Lỗi', errorDiv.textContent.trim(), false);
+            errorDiv.remove();
+        }
+    });
+</script>
+</body>
+</html>

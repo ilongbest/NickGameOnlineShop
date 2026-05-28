@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 640" role="img" aria-label="Valorant duelist">
+  <defs>
+    <linearGradient id="suit" x1="115" x2="323" y1="90" y2="615" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#e8fdff"/>
+      <stop offset=".38" stop-color="#4cf1ff"/>
+      <stop offset="1" stop-color="#11142d"/>
+    </linearGradient>
+    <linearGradient id="red" x1="96" x2="314" y1="170" y2="520" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ff6b8a"/>
+      <stop offset="1" stop-color="#ff273f"/>
+    </linearGradient>
+    <filter id="neon" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feColorMatrix in="blur" values=".3 0 0 0 0 0 .9 0 0 .9 0 0 1 0 1 0 0 0 .9 0"/>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <path d="M184 74c35-23 81-13 101 22 19 34 7 79-28 99-35 21-82 10-102-25-20-34-7-75 29-96z" fill="#11142d"/>
+  <path d="M158 95c40-49 99-48 145 4-40-14-79-12-117 8z" fill="#e8fdff"/>
+  <path d="M134 197l74-39 76 13 55 91-45 79-2 210-85 55-88-54 5-210-47-76z" fill="url(#suit)" filter="url(#neon)"/>
+  <path d="M176 210l53 66 54-59 19 69-73 96-73-100z" fill="url(#red)" opacity=".95"/>
+  <path d="M80 282l50-76 46 49-30 139-61 31z" fill="#11142d"/>
+  <path d="M301 221l57 65-12 134-65-33-23-126z" fill="#11142d"/>
+  <path d="M133 398l70 24-13 175-75-42z" fill="#090b18"/>
+  <path d="M266 421l58-23 24 151-75 49z" fill="#090b18"/>
+  <path d="M94 442c72-31 150-31 234 0" fill="none" stroke="#4cf1ff" stroke-width="7" stroke-linecap="round" opacity=".72"/>
+  <path d="M323 93l-55 112M356 143l-62 87M72 156l67 82" fill="none" stroke="#ff273f" stroke-width="9" stroke-linecap="round" opacity=".62"/>
+  <path d="M175 154c31 20 68 22 111 5-10 39-36 61-72 59-29-2-49-23-39-64z" fill="#0b0d1a"/>
+</svg>

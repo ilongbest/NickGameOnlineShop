@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>G-SHOP Admin | Quản lý hệ thống</title>
+
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-color: #00ff88;
+            --secondary-color: #00d4ff;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --border-color: rgba(255, 255, 255, 0.1);
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: radial-gradient(circle at top right, #16213e, #0f0c29);
+            color: #e0e0e0;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .sidebar {
+            background: var(--card-bg);
+            backdrop-filter: blur(15px);
+            border-right: 1px solid var(--border-color);
+            min-height: 100vh;
+            padding: 2rem 1rem;
+        }
+        .nav-link {
+            color: #aaa;
+            padding: 0.8rem 1rem;
+            border-radius: 10px;
+            margin-bottom: 0.5rem;
+            transition: 0.3s;
+            text-decoration: none;
+            display: block;
+        }
+        .nav-link:hover, .nav-link.active {
+            background: rgba(0, 255, 136, 0.1);
+            color: var(--primary-color);
+        }
+        .glass-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+        .table { color: #e0e0e0; vertical-align: middle; }
+        .price-text { color: var(--primary-color); font-weight: 600; }
+        .badge-selling { background: rgba(0, 255, 136, 0.2); color: var(--primary-color); border: 1px solid var(--primary-color); }
+        .badge-sold { background: rgba(255, 75, 43, 0.2); color: #ff4b2b; border: 1px solid #ff4b2b; }
+        .form-control, .form-select { background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-color); color: #fff; }
+        .modal-content {
+            background: #1a1a2e;
+            border: 1px solid var(--border-color);
+            border-radius: 15px;
+            color: #e0e0e0;
+        }
+        .modal-header {
+            border-bottom: 1px solid var(--border-color);
+        }
+        .modal-footer {
+            border-top: 1px solid var(--border-color);
+        }
+        .btn-close {
+            filter: invert(1);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <nav class="col-md-2 d-none d-md-block sidebar">
+            <div class="text-center mb-5">
+                <h3 class="fw-bold" style="letter-spacing: 2px;">G-SHOP <span class="text-primary">ADMIN</span></h3>
+            </div>
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/admin/accounts}">
+                        <i class="fas fa-gamepad me-2"></i> Kho Nick Game
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/admin/users}">
+                        <i class="fas fa-users me-2"></i> Quản lý người dùng
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/admin/orders}">
+                        <i class="fas fa-receipt me-2"></i> Quản lý đơn hàng
+                    </a>
+                </li>
+                <li class="nav-item mt-5">
+                    <a class="nav-link text-danger" th:href="@{/logout}">
+                        <i class="fas fa-sign-out-alt me-2"></i> Đăng xuất
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="col-md-10 ms-sm-auto px-md-4 py-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h2">Bảng điều khiển Admin</h1>
+                <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#addAccountModal">
+                    <i class="fas fa-plus me-1"></i> Thêm Nick Mới
+                </button>
+            </div>
+
+            <div class="glass-card">
+                <h5 class="mb-4">Danh sách tài khoản game</h5>
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Tài khoản</th>
+                            <th>Giá</th>
+                            <th>Tag</th>
+                            <th>Trạng thái</th>
+                            <th class="text-end">Hành động</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="acc : ${accounts}">
+                            <td th:text="${acc.id}"></td>
+                            <td>
+                                <div class="fw-bold" th:text="${acc.accUsername}"></div>
+                                <small class="text-muted" th:text="${acc.description}"></small>
+                            </td>
+                            <td class="price-text" th:text="${#numbers.formatDecimal(acc.price, 0, 'COMMA', 0, 'POINT')} + ' đ'"></td>
+                            <td>
+                                <span th:if="${acc.tag == 'CHEAP'}" class="badge" style="background: rgba(255, 193, 7, 0.2); color: #ffc107; border: 1px solid #ffc107;">Giá rẻ</span>
+                                <span th:if="${acc.tag == 'VIP'}" class="badge" style="background: rgba(138, 43, 226, 0.2); color: #8a2be2; border: 1px solid #8a2be2;">Nick VIP</span>
+                                <span th:if="${acc.tag == 'RANK_HIGH'}" class="badge" style="background: rgba(13, 110, 253, 0.2); color: #6ea8fe; border: 1px solid #6ea8fe;">Rank cao</span>
+                                <span th:if="${acc.tag == 'SKIN_MANY'}" class="badge" style="background: rgba(32, 201, 151, 0.2); color: #20c997; border: 1px solid #20c997;">Skin nhiều</span>
+                                <span th:if="${acc.tag == null || acc.tag.isEmpty()}" class="text-muted">--</span>
+                            </td>
+                            <td>
+                                <span th:if="${acc.status == 0}" class="badge badge-selling">Đang bán</span>
+                                <span th:if="${acc.status == 1}" class="badge badge-sold">Đã bán</span>
+                            </td>
+                            <td class="text-end">
+                                <!-- THAY ĐỔI TẠI ĐÂY: Chuyển sang trang detail thay vì mở modal -->
+                                <a th:href="@{/admin/accounts/detail/{id}(id=${acc.id})}" class="btn btn-sm btn-outline-info me-1">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a th:href="@{/admin/accounts/delete/{id}(id=${acc.id})}" class="btn btn-sm btn-outline-danger">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="glass-card mt-4">
+                <h5 class="mb-3">Yêu cầu nạp tiền chờ duyệt</h5>
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                        <tr>
+                            <th>Mã YC</th>
+                            <th>Người dùng</th>
+                            <th>Số tiền</th>
+                            <th>Nội dung CK</th>
+                            <th>Thời gian</th>
+                            <th class="text-end">Duyệt</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:if="${#lists.isEmpty(pendingTopups)}">
+                            <td colspan="6" class="text-center text-muted">Không có yêu cầu nạp tiền chờ duyệt.</td>
+                        </tr>
+                        <tr th:each="req : ${pendingTopups}">
+                            <td th:text="${req.id}"></td>
+                            <td>
+                                <div th:text="${req.user.username}"></div>
+                                <small class="text-muted" th:text="'User ID: ' + ${req.user.id}"></small>
+                            </td>
+                            <td class="price-text" th:text="${#numbers.formatDecimal(req.amount, 0, 'COMMA', 0, 'POINT')} + ' đ'"></td>
+                            <td th:text="${req.transferMemo}"></td>
+                            <td th:text="${#temporals.format(req.createdAt, 'dd/MM/yyyy HH:mm')}"></td>
+                            <td class="text-end">
+                                <form th:action="@{/admin/accounts/topup/approve}" method="post" style="display:inline;">
+                                    <input type="hidden" name="requestId" th:value="${req.id}">
+                                    <button class="btn btn-sm btn-success" type="submit">
+                                        <i class="fas fa-check"></i> Cộng tiền
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<!-- Modal Thêm Nick Mới -->
+<div class="modal fade" id="addAccountModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content glass-card p-0" style="background: #16213e;">
+            <div class="modal-header border-0">
+                <h5 class="modal-title text-white">Thêm sản phẩm mới</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form th:action="@{/admin/accounts/add}" method="post" enctype="multipart/form-data" th:object="${newAccount}">
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Tài khoản</label>
+                            <input type="text" th:field="*{accUsername}" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Mật khẩu</label>
+                            <input type="text" th:field="*{accPassword}" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Giá (VND)</label>
+                            <input type="number" th:field="*{price}" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Danh mục Game</label>
+                            <select name="categoryId" class="form-select" required>
+                                <option value="">-- Chọn danh mục --</option>
+                                <option th:each="cat : ${categories}"
+                                        th:value="${cat.id}"
+                                        th:text="${cat.name}"></option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Tag</label>
+                            <select th:field="*{tag}" class="form-select">
+                                <option value="">-- Không chọn tag --</option>
+                                <option value="CHEAP">Giá rẻ</option>
+                                <option value="VIP">Nick VIP</option>
+                                <option value="RANK_HIGH">Rank cao</option>
+                                <option value="SKIN_MANY">Skin nhiều</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Mô tả ngắn</label>
+                            <textarea th:field="*{description}" class="form-control" rows="3"></textarea>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Ảnh nick (có thể chọn nhiều ảnh)</label>
+                            <input type="file" name="imageFiles" class="form-control" accept="image/*" multiple>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary px-4">LƯU SẢN PHẨM</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Thông báo -->
+<div class="modal fade" id="notificationModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">Thông báo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="modalMessage"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Hàm hiển thị modal thông báo
+    function showNotification(title, message, isSuccess) {
+        const modalTitle = document.getElementById('modalTitle');
+        const modalMessage = document.getElementById('modalMessage');
+        const modal = new bootstrap.Modal(document.getElementById('notificationModal'));
+        
+        modalTitle.innerHTML = '<i class="fas fa-' + (isSuccess ? 'check-circle' : 'exclamation-triangle') + ' me-2" style="color: ' + (isSuccess ? '#00ff88' : '#ff4b2b') + ';"></i>' + title;
+        modalMessage.textContent = message;
+        modal.show();
+    }
+
+    // Kiểm tra và hiển thị thông báo khi trang load
+    window.addEventListener('DOMContentLoaded', function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        // Kiểm tra các thông báo có thể có
+        if (urlParams.has('addSuccess')) {
+            showNotification('Thành công', 'Thêm nick mới thành công!', true);
+        }
+        if (urlParams.has('deleteSuccess')) {
+            showNotification('Thành công', 'Xóa nick thành công!', true);
+        }
+        if (urlParams.has('topupSuccess')) {
+            showNotification('Thành công', 'Duyệt yêu cầu nạp tiền thành công!', true);
+        }
+        if (urlParams.has('error')) {
+            showNotification('Lỗi', 'Có lỗi xảy ra, vui lòng thử lại!', false);
+        }
+    });
+</script>
+</body>
+</html>

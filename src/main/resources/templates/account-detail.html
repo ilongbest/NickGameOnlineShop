@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Chi tiết & Chỉnh sửa | G-SHOP Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        :root { --primary-color: #00ff88; --card-bg: rgba(255, 255, 255, 0.05); --border-color: rgba(255, 255, 255, 0.1); }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: radial-gradient(circle at top right, #16213e, #0f0c29);
+            color: #e0e0e0; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px;
+        }
+        .detail-card {
+            background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--border-color);
+            border-radius: 20px; width: 100%; max-width: 700px; padding: 2.5rem; box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+        }
+        .info-group { margin-bottom: 1.2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; }
+        .info-label { color: #888; font-size: 0.8rem; text-transform: uppercase; }
+        .info-value { color: #fff; font-size: 1.05rem; font-weight: 500; margin-top: 4px; }
+        .highlight { color: var(--primary-color); font-family: monospace; background: rgba(0, 255, 136, 0.1); padding: 2px 6px; border-radius: 4px; }
+        .form-control, .form-select { background: rgba(255, 255, 255, 0.08); border: 1px solid var(--border-color); color: #fff; }
+        .form-control:focus { background: rgba(255, 255, 255, 0.12); color: #fff; border-color: var(--primary-color); box-shadow: none; }
+    </style>
+</head>
+<body>
+
+<div class="detail-card">
+    <div class="d-flex justify-content-between align-items-start mb-4">
+        <div>
+            <h2 class="fw-bold m-0">THÔNG TIN <span class="text-primary">CHI TIẾT</span></h2>
+            <small class="text-muted">Mã tài khoản: #<span th:text="${account.id}"></span></small>
+        </div>
+        <a th:href="@{/admin/accounts}" class="btn btn-sm btn-outline-light"><i class="fas fa-times"></i></a>
+    </div>
+
+    <!-- Hiển thị thông báo khi cập nhật xong -->
+    <div th:if="${param.updated}" class="alert alert-success bg-success text-white border-0 py-2 small mb-4">
+        <i class="fas fa-check-circle me-2"></i> Cập nhật thông tin thành công!
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 info-group">
+            <div class="info-label">Tài khoản đăng nhập</div>
+            <div class="info-value"><span class="highlight" th:text="${account.accUsername}"></span></div>
+        </div>
+        <div class="col-md-6 info-group">
+            <div class="info-label">Mật khẩu</div>
+            <div class="info-value"><span class="highlight" th:text="${account.accPassword}"></span></div>
+        </div>
+        <div class="col-md-6 info-group">
+            <div class="info-label">Loại Game</div>
+            <div class="info-value" th:text="${account.category != null ? account.category.name : 'Chưa rõ'}"></div>
+        </div>
+        <div class="col-md-6 info-group">
+            <div class="info-label">Giá niêm yết</div>
+            <div class="info-value text-primary fw-bold" th:text="${#numbers.formatDecimal(account.price, 0, 'COMMA', 0, 'POINT')} + ' đ'"></div>
+        </div>
+        <div class="col-md-6 info-group">
+            <div class="info-label">Ngày đăng</div>
+            <div class="info-value" th:text="${#temporals.format(account.createdAt, 'dd/MM/yyyy HH:mm')}"></div>
+        </div>
+        <div class="col-md-6 info-group">
+            <div class="info-label">Trạng thái</div>
+            <div class="info-value">
+                <span th:if="${account.status == 0}" class="text-success small"><i class="fas fa-circle me-1" style="font-size: 8px;"></i> Đang bán</span>
+                <span th:if="${account.status == 1}" class="text-danger small"><i class="fas fa-circle me-1" style="font-size: 8px;"></i> Đã bán</span>
+            </div>
+        </div>
+        <div class="col-md-6 info-group">
+            <div class="info-label">Tag</div>
+            <div class="info-value">
+                <span th:if="${account.tag == 'CHEAP'}" style="background: rgba(255, 193, 7, 0.2); color: #ffc107; border: 1px solid #ffc107; padding: 2px 8px; border-radius: 4px;">Giá rẻ</span>
+                <span th:if="${account.tag == 'VIP'}" style="background: rgba(138, 43, 226, 0.2); color: #8a2be2; border: 1px solid #8a2be2; padding: 2px 8px; border-radius: 4px;">Nick VIP</span>
+                <span th:if="${account.tag == 'RANK_HIGH'}" style="background: rgba(13, 110, 253, 0.2); color: #6ea8fe; border: 1px solid #6ea8fe; padding: 2px 8px; border-radius: 4px;">Rank cao</span>
+                <span th:if="${account.tag == 'SKIN_MANY'}" style="background: rgba(32, 201, 151, 0.2); color: #20c997; border: 1px solid #20c997; padding: 2px 8px; border-radius: 4px;">Skin nhiều</span>
+                <span th:if="${account.tag == null || account.tag.isEmpty()}" class="text-muted">-- Không có tag --</span>
+            </div>
+        </div>
+        <div class="col-12 info-group border-0">
+            <div class="info-label">Mô tả nick</div>
+            <div class="info-value text-muted" style="font-size: 0.95rem;" th:text="${account.description}"></div>
+        </div>
+    </div>
+
+    <div class="text-center mt-4">
+        <button class="btn btn-primary px-5 py-2 rounded-pill shadow" data-bs-toggle="modal" data-bs-target="#editDialog">
+            <i class="fas fa-edit me-2"></i> CHỈNH SỬA THÔNG TIN
+        </button>
+    </div>
+</div>
+
+<!-- DIALOG CHỈNH SỬA (MODAL) -->
+<div class="modal fade" id="editDialog" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content glass-card p-0" style="background: #16213e; border: 1px solid var(--primary-color);">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title text-white"><i class="fas fa-magic me-2"></i>Chế độ chỉnh sửa</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form th:action="@{/admin/accounts/update}" method="post" th:object="${account}">
+                <input type="hidden" th:field="*{id}">
+                <div class="modal-body">
+                    <div class="row g-3 text-start">
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small">Tên đăng nhập</label>
+                            <input type="text" th:field="*{accUsername}" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small">Mật khẩu mới</label>
+                            <input type="text" th:field="*{accPassword}" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small">Giá bán (VND)</label>
+                            <input type="number" th:field="*{price}" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small">Loại Game</label>
+                            <select name="categoryId" class="form-select">
+                                <option th:each="cat : ${categories}"
+                                        th:value="${cat.id}"
+                                        th:text="${cat.name}"
+                                        th:selected="${account.category != null && cat.id == account.category.id}">
+                                </option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small">Trạng thái bán</label>
+                            <select th:field="*{status}" class="form-select">
+                                <option value="0">Đang bán trên hệ thống</option>
+                                <option value="1">Đã bán / Tạm ẩn</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small">Tag</label>
+                            <select th:field="*{tag}" class="form-select">
+                                <option value="">-- Không chọn tag --</option>
+                                <option value="CHEAP">Giá rẻ</option>
+                                <option value="VIP">Nick VIP</option>
+                                <option value="RANK_HIGH">Rank cao</option>
+                                <option value="SKIN_MANY">Skin nhiều</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label text-muted small">Mô tả chi tiết nội dung nick</label>
+                            <textarea th:field="*{description}" class="form-control" rows="3"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-link text-muted text-decoration-none" data-bs-dismiss="modal">Hủy bỏ</button>
+                    <button type="submit" class="btn btn-primary px-4">LƯU THAY ĐỔI</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
