@@ -30,6 +30,13 @@ public class WalletTopupRequest {
     @Column(nullable = false, length = 20)
     private String status = "PENDING";
 
+    @Column(nullable = false, length = 10)
+    private String requestType = "BANK"; // "BANK" or "CARD"
+
+    private String cardType;
+    private String cardCode;
+    private String cardSerial;
+
     private LocalDateTime createdAt = LocalDateTime.now();
     private LocalDateTime approvedAt;
 }

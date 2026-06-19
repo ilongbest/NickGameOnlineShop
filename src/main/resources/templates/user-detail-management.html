@@ -51,6 +51,17 @@
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
         }
         .table { color: #e0e0e0; vertical-align: middle; }
+        .table thead th {
+            color: #9fb0c4;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            border-bottom-color: var(--border-color);
+        }
+        .table td {
+            border-bottom-color: var(--border-color);
+        }
         .price-text { color: var(--primary-color); font-weight: 600; }
         .form-control, .form-select { background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-color); color: #fff; }
     </style>
@@ -76,8 +87,13 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" th:href="@{/admin/users/balance}">
-                        <i class="fas fa-wallet me-2"></i> Quản lý số dư
+                    <a class="nav-link" th:href="@{/admin/orders}">
+                        <i class="fas fa-receipt me-2"></i> Quản lý đơn hàng
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/admin/topups}">
+                        <i class="fas fa-wallet me-2"></i> Yêu cầu nạp tiền
                     </a>
                 </li>
                 <li class="nav-item mt-5">

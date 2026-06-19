@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>G-SHOP Admin | Quản lý hệ thống</title>
+    <title>Kho Nick Game | G-SHOP Admin</title>
 
     <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -53,6 +53,17 @@
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
         }
         .table { color: #e0e0e0; vertical-align: middle; }
+        .table thead th {
+            color: #9fb0c4;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            border-bottom-color: var(--border-color);
+        }
+        .table td {
+            border-bottom-color: var(--border-color);
+        }
         .price-text { color: var(--primary-color); font-weight: 600; }
         .badge-selling { background: rgba(0, 255, 136, 0.2); color: var(--primary-color); border: 1px solid var(--primary-color); }
         .badge-sold { background: rgba(255, 75, 43, 0.2); color: #ff4b2b; border: 1px solid #ff4b2b; }
@@ -85,7 +96,7 @@
             </div>
             <ul class="nav flex-column">
                 <li class="nav-item">
-                    <a class="nav-link" th:href="@{/admin/accounts}">
+                    <a class="nav-link active" th:href="@{/admin/accounts}">
                         <i class="fas fa-gamepad me-2"></i> Kho Nick Game
                     </a>
                 </li>
@@ -97,6 +108,11 @@
                 <li class="nav-item">
                     <a class="nav-link" th:href="@{/admin/orders}">
                         <i class="fas fa-receipt me-2"></i> Quản lý đơn hàng
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/admin/topups}">
+                        <i class="fas fa-wallet me-2"></i> Yêu cầu nạp tiền
                     </a>
                 </li>
                 <li class="nav-item mt-5">
@@ -164,46 +180,7 @@
                 </div>
             </div>
 
-            <div class="glass-card mt-4">
-                <h5 class="mb-3">Yêu cầu nạp tiền chờ duyệt</h5>
-                <div class="table-responsive">
-                    <table class="table">
-                        <thead>
-                        <tr>
-                            <th>Mã YC</th>
-                            <th>Người dùng</th>
-                            <th>Số tiền</th>
-                            <th>Nội dung CK</th>
-                            <th>Thời gian</th>
-                            <th class="text-end">Duyệt</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <tr th:if="${#lists.isEmpty(pendingTopups)}">
-                            <td colspan="6" class="text-center text-muted">Không có yêu cầu nạp tiền chờ duyệt.</td>
-                        </tr>
-                        <tr th:each="req : ${pendingTopups}">
-                            <td th:text="${req.id}"></td>
-                            <td>
-                                <div th:text="${req.user.username}"></div>
-                                <small class="text-muted" th:text="'User ID: ' + ${req.user.id}"></small>
-                            </td>
-                            <td class="price-text" th:text="${#numbers.formatDecimal(req.amount, 0, 'COMMA', 0, 'POINT')} + ' đ'"></td>
-                            <td th:text="${req.transferMemo}"></td>
-                            <td th:text="${#temporals.format(req.createdAt, 'dd/MM/yyyy HH:mm')}"></td>
-                            <td class="text-end">
-                                <form th:action="@{/admin/accounts/topup/approve}" method="post" style="display:inline;">
-                                    <input type="hidden" name="requestId" th:value="${req.id}">
-                                    <button class="btn btn-sm btn-success" type="submit">
-                                        <i class="fas fa-check"></i> Cộng tiền
-                                    </button>
-                                </form>
-                            </td>
-                        </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+
         </main>
     </div>
 </div>

@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yêu cầu nạp tiền | G-SHOP Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-color: #00ff88;
+            --secondary-color: #00d4ff;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --border-color: rgba(255, 255, 255, 0.1);
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: radial-gradient(circle at top right, #16213e, #0f0c29);
+            color: #e0e0e0;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .sidebar {
+            background: var(--card-bg);
+            backdrop-filter: blur(15px);
+            border-right: 1px solid var(--border-color);
+            min-height: 100vh;
+            padding: 2rem 1rem;
+        }
+        .nav-link {
+            color: #aaa;
+            padding: 0.8rem 1rem;
+            border-radius: 10px;
+            margin-bottom: 0.5rem;
+            transition: 0.3s;
+            text-decoration: none;
+            display: block;
+        }
+        .nav-link:hover, .nav-link.active {
+            background: rgba(0, 255, 136, 0.1);
+            color: var(--primary-color);
+        }
+        .glass-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+        .table { color: #e0e0e0; vertical-align: middle; }
+        .table thead th {
+            color: #9fb0c4;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            border-bottom-color: var(--border-color);
+        }
+        .table td {
+            border-bottom-color: var(--border-color);
+        }
+        .price-text { color: var(--primary-color); font-weight: 600; }
+        .form-control, .form-select { background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-color); color: #fff; }
+        
+        .badge-approved { background: rgba(0, 255, 136, 0.2); color: var(--primary-color); border: 1px solid var(--primary-color); }
+        .badge-rejected { background: rgba(255, 75, 43, 0.2); color: #ff4b2b; border: 1px solid #ff4b2b; }
+        
+        .modal-content {
+            background: #1a1a2e;
+            border: 1px solid var(--border-color);
+            border-radius: 15px;
+            color: #e0e0e0;
+        }
+        .modal-header {
+            border-bottom: 1px solid var(--border-color);
+        }
+        .modal-footer {
+            border-top: 1px solid var(--border-color);
+        }
+        .btn-close {
+            filter: invert(1);
+        }
+        .muted-small {
+            color: #8f9bae;
+            font-size: 0.82rem;
+        }
+        
+        /* Custom Pagination Styling */
+        .pagination {
+            margin-bottom: 0;
+            gap: 5px;
+        }
+        .page-link {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: #aaa;
+            transition: all 0.3s ease;
+            border-radius: 8px;
+            padding: 0.5rem 0.75rem;
+        }
+        .page-link:hover {
+            background: rgba(0, 255, 136, 0.1);
+            color: var(--primary-color);
+            border-color: rgba(0, 255, 136, 0.3);
+        }
+        .page-item.active .page-link {
+            background: rgba(0, 255, 136, 0.2);
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+            font-weight: 600;
+        }
+        .page-item.disabled .page-link {
+            background: rgba(255, 255, 255, 0.02);
+            border-color: rgba(255, 255, 255, 0.05);
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <nav class="col-md-2 d-none d-md-block sidebar">
+            <div class="text-center mb-5">
+                <h3 class="fw-bold" style="letter-spacing: 2px;">G-SHOP <span class="text-primary">ADMIN</span></h3>
+            </div>
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/admin/accounts}">
+                        <i class="fas fa-gamepad me-2"></i> Kho Nick Game
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/admin/users}">
+                        <i class="fas fa-users me-2"></i> Quản lý người dùng
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/admin/orders}">
+                        <i class="fas fa-receipt me-2"></i> Quản lý đơn hàng
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" th:href="@{/admin/topups}">
+                        <i class="fas fa-wallet me-2"></i> Yêu cầu nạp tiền
+                    </a>
+                </li>
+                <li class="nav-item mt-5">
+                    <a class="nav-link text-danger" th:href="@{/logout}">
+                        <i class="fas fa-sign-out-alt me-2"></i> Đăng xuất
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="col-md-10 ms-sm-auto px-md-4 py-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h2 mb-1">Yêu cầu nạp tiền</h1>
+                    <div class="muted-small">Duyệt và xử lý các yêu cầu nạp số dư của người dùng hệ thống.</div>
+                </div>
+            </div>
+
+            <!-- Yêu cầu nạp ngân hàng/ATM chờ duyệt -->
+            <div class="glass-card mb-4">
+                <h5 class="mb-3"><i class="fas fa-university me-2 text-warning"></i>Yêu cầu nạp ATM/Ngân hàng chờ duyệt</h5>
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                        <tr>
+                            <th>Mã YC</th>
+                            <th>Người dùng</th>
+                            <th>Số tiền</th>
+                            <th>Nội dung CK</th>
+                            <th>Thời gian gửi</th>
+                            <th class="text-end">Hành động</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="req : ${pendingTopups}" th:if="${req.requestType == null || req.requestType == 'BANK'}">
+                            <td th:text="'#' + ${req.id}"></td>
+                            <td>
+                                <div class="fw-bold" th:text="${req.user.username}"></div>
+                                <small class="text-muted" th:text="'User ID: ' + ${req.user.id}"></small>
+                            </td>
+                            <td class="price-text font-weight-bold" th:text="${#numbers.formatDecimal(req.amount, 0, 'COMMA', 0, 'POINT')} + ' đ'"></td>
+                            <td>
+                                <code class="text-info bg-dark px-2 py-1 rounded" th:text="${req.transferMemo}"></code>
+                            </td>
+                            <td th:text="${#temporals.format(req.createdAt, 'dd/MM/yyyy HH:mm')}"></td>
+                            <td class="text-end">
+                                <form th:action="@{/admin/topups/approve}" method="post" style="display:inline-block;" class="me-1">
+                                    <input type="hidden" name="requestId" th:value="${req.id}">
+                                    <button class="btn btn-sm btn-success px-3" type="submit">
+                                        <i class="fas fa-check me-1"></i> Duyệt cộng tiền
+                                    </button>
+                                </form>
+                                <form th:action="@{/admin/topups/reject}" method="post" style="display:inline-block;">
+                                    <input type="hidden" name="requestId" th:value="${req.id}">
+                                    <button class="btn btn-sm btn-outline-danger px-3" type="submit">
+                                        <i class="fas fa-times me-1"></i> Từ chối
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(pendingTopups) || #lists.size(pendingTopups.?[requestType == null || requestType == 'BANK']) == 0}">
+                            <td colspan="6" class="text-center text-muted py-4">Không có yêu cầu nạp ATM/Ngân hàng nào.</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Yêu cầu nạp thẻ cào chờ duyệt -->
+            <div class="glass-card mb-4">
+                <h5 class="mb-3"><i class="fas fa-ticket-alt me-2 text-warning"></i>Yêu cầu nạp thẻ cào chờ duyệt</h5>
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                        <tr>
+                            <th>Mã YC</th>
+                            <th>Người dùng</th>
+                            <th>Loại thẻ</th>
+                            <th>Mệnh giá</th>
+                            <th>Mã thẻ</th>
+                            <th>Serial</th>
+                            <th>Thời gian gửi</th>
+                            <th class="text-end">Hành động</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="req : ${pendingTopups}" th:if="${req.requestType == 'CARD'}">
+                            <td th:text="'#' + ${req.id}"></td>
+                            <td>
+                                <div class="fw-bold" th:text="${req.user.username}"></div>
+                                <small class="text-muted" th:text="'User ID: ' + ${req.user.id}"></small>
+                            </td>
+                            <td>
+                                <span class="badge bg-danger px-2 py-1 text-uppercase" th:text="${req.cardType}"></span>
+                            </td>
+                            <td class="price-text font-weight-bold" th:text="${#numbers.formatDecimal(req.amount, 0, 'COMMA', 0, 'POINT')} + ' đ'"></td>
+                            <td>
+                                <code class="text-info bg-dark px-2 py-1 rounded" th:text="${req.cardCode}"></code>
+                            </td>
+                            <td>
+                                <code class="text-warning bg-dark px-2 py-1 rounded" th:text="${req.cardSerial}"></code>
+                            </td>
+                            <td th:text="${#temporals.format(req.createdAt, 'dd/MM/yyyy HH:mm')}"></td>
+                            <td class="text-end">
+                                <form th:action="@{/admin/topups/approve}" method="post" style="display:inline-block;" class="me-1">
+                                    <input type="hidden" name="requestId" th:value="${req.id}">
+                                    <button class="btn btn-sm btn-success px-3" type="submit">
+                                        <i class="fas fa-check me-1"></i> Thẻ Đúng (Duyệt)
+                                    </button>
+                                </form>
+                                <form th:action="@{/admin/topups/reject}" method="post" style="display:inline-block;">
+                                    <input type="hidden" name="requestId" th:value="${req.id}">
+                                    <button class="btn btn-sm btn-outline-danger px-3" type="submit">
+                                        <i class="fas fa-times me-1"></i> Thẻ Sai (Từ chối)
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(pendingTopups) || #lists.size(pendingTopups.?[requestType == 'CARD']) == 0}">
+                            <td colspan="8" class="text-center text-muted py-4">Không có yêu cầu nạp thẻ cào nào.</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Lịch sử giao dịch nạp tiền -->
+            <div class="glass-card">
+                <h5 class="mb-3"><i class="fas fa-history me-2 text-info"></i>Lịch sử giao dịch nạp tiền</h5>
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                        <tr>
+                            <th>Mã YC</th>
+                            <th>Người dùng</th>
+                            <th>Số tiền</th>
+                            <th>Hình thức / Chi tiết</th>
+                            <th>Thời gian gửi</th>
+                            <th>Thời gian xử lý</th>
+                            <th>Trạng thái</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:if="${#lists.isEmpty(processedTopups)}">
+                            <td colspan="7" class="text-center text-muted py-4">Chưa có lịch sử giao dịch nạp tiền nào.</td>
+                        </tr>
+                        <tr th:each="req : ${processedTopups}">
+                            <td th:text="'#' + ${req.id}"></td>
+                            <td>
+                                <div class="fw-bold" th:text="${req.user.username}"></div>
+                                <small class="text-muted" th:text="'User ID: ' + ${req.user.id}"></small>
+                            </td>
+                            <td class="price-text font-weight-bold" th:text="${#numbers.formatDecimal(req.amount, 0, 'COMMA', 0, 'POINT')} + ' đ'"></td>
+                            <td>
+                                <span th:if="${req.requestType == null || req.requestType == 'BANK'}">
+                                    <span class="badge bg-secondary me-1">BANK</span>
+                                    <code class="text-info bg-dark px-2 py-1 rounded" th:text="${req.transferMemo}"></code>
+                                </span>
+                                <span th:if="${req.requestType == 'CARD'}">
+                                    <span class="badge bg-danger text-uppercase me-1" th:text="${req.cardType}"></span>
+                                    Mã: <code class="text-info bg-dark px-1 rounded" th:text="${req.cardCode}"></code> | 
+                                    Ser: <code class="text-warning bg-dark px-1 rounded" th:text="${req.cardSerial}"></code>
+                                </span>
+                            </td>
+                            <td th:text="${#temporals.format(req.createdAt, 'dd/MM/yyyy HH:mm')}"></td>
+                            <td th:text="${#temporals.format(req.approvedAt, 'dd/MM/yyyy HH:mm')}"></td>
+                            <td>
+                                <span th:if="${req.status == 'APPROVED'}" class="badge badge-approved px-2 py-1">Đã cộng tiền</span>
+                                <span th:if="${req.status == 'REJECTED'}" class="badge badge-rejected px-2 py-1">Đã từ chối</span>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Phân trang -->
+                <nav aria-label="Page navigation" th:if="${totalPages > 1}" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                            <a class="page-link" th:href="@{/admin/topups(page=${currentPage - 1})}" aria-label="Previous">
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                        </li>
+                        <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}" th:classappend="${currentPage == i} ? 'active'">
+                            <a class="page-link" th:href="@{/admin/topups(page=${i})}" th:text="${i + 1}">1</a>
+                        </li>
+                        <li class="page-item" th:classappend="${currentPage + 1 >= totalPages} ? 'disabled'">
+                            <a class="page-link" th:href="@{/admin/topups(page=${currentPage + 1})}" aria-label="Next">
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </main>
+    </div>
+</div>
+
+<!-- Modal Thông báo -->
+<div class="modal fade" id="notificationModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">Thông báo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="modalMessage"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function showNotification(title, message, isSuccess) {
+        const modalTitle = document.getElementById('modalTitle');
+        const modalMessage = document.getElementById('modalMessage');
+        const modal = new bootstrap.Modal(document.getElementById('notificationModal'));
+        
+        modalTitle.innerHTML = '<i class="fas fa-' + (isSuccess ? 'check-circle' : 'exclamation-triangle') + ' me-2" style="color: ' + (isSuccess ? '#00ff88' : '#ff4b2b') + ';"></i>' + title;
+        modalMessage.textContent = message;
+        modal.show();
+    }
+
+    window.addEventListener('DOMContentLoaded', function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        if (urlParams.has('approved')) {
+            showNotification('Thành công', 'Duyệt cộng tiền thành công!', true);
+        } else if (urlParams.has('rejected')) {
+            showNotification('Từ chối', 'Đã từ chối yêu cầu nạp tiền.', false);
+        } else if (urlParams.has('error')) {
+            showNotification('Lỗi', 'Yêu cầu nạp tiền đã được xử lý trước đó hoặc không hợp lệ.', false);
+        }
+    });
+</script>
+</body>
+</html>

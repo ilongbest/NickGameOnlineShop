@@ -38,7 +38,6 @@ public class AdminAccountController {
         model.addAttribute("users", userRepository.findAll());
         model.addAttribute("categories", categoryRepository.findAll());
         model.addAttribute("newAccount", new AccountGame());
-        model.addAttribute("pendingTopups", walletTopupRequestRepository.findByStatusOrderByCreatedAtDesc("PENDING"));
         return "account-dashboard";
     }
 
@@ -83,25 +82,7 @@ public class AdminAccountController {
         return "redirect:/admin/accounts?success_balance";
     }
 
-    @PostMapping("/topup/approve")
-    public String approveTopup(@RequestParam("requestId") Long requestId) {
-        WalletTopupRequest request = walletTopupRequestRepository.findById(requestId)
-                .orElseThrow(() -> new IllegalArgumentException("Khong tim thay yeu cau nap tien"));
 
-        if (!"PENDING".equalsIgnoreCase(request.getStatus())) {
-            return "redirect:/admin/accounts?topup=already_processed";
-        }
-
-        User user = request.getUser();
-        BigDecimal currentBalance = user.getBalance() != null ? user.getBalance() : BigDecimal.ZERO;
-        user.setBalance(currentBalance.add(request.getAmount()));
-        userRepository.save(user);
-
-        request.setStatus("APPROVED");
-        request.setApprovedAt(LocalDateTime.now());
-        walletTopupRequestRepository.save(request);
-        return "redirect:/admin/accounts?topup=approved";
-    }
 
     @GetMapping("/detail/{id}")
     public String showAccountDetail(@PathVariable Long id, Model model) {
